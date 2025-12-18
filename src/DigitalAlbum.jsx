@@ -16,8 +16,8 @@ const VISUAL_CONFIG = {
 
   // Textos de la Portada
   coverTitle: "Te Amo",
-  coverSubtitle: "Nuestro Primer Año",
-  coverTagline: "Álbum de Recuerdos",
+  coverSubtitle: "Nuestro Primer Año (2024-2025)",
+  coverTagline: "Jorge y Rebeca",
 
   // Colores de Texto
   textColorLight: "#f5f5f5", // Texto principal claro
