@@ -2,6 +2,28 @@ import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { Volume2, VolumeX, Edit3, Save, ZoomIn, ChevronLeft, ChevronRight, Loader, Upload } from 'lucide-react';
 import { supabase } from './supabaseClient';
 
+// --- 🎨 ZONA DE DISEÑO (Edita esto para cambiar el look) ---
+const VISUAL_CONFIG = {
+  // Fondos y Texturas
+  appBackground: "url('https://www.transparenttextures.com/patterns/wood-pattern.png')", // Fondo de madera de la mesa
+  appBackgroundColor: "#d8c8b0", // Color base de la mesa
+  
+  coverBackground: "#181818", // Color de la tapa del álbum
+  coverTexture: "url('https://www.transparenttextures.com/patterns/black-paper.png')", // Textura de la tapa
+  
+  innerPageBackground: "#1a1a1a", // Color de las páginas interiores
+  innerPageTexture: "url('https://www.transparenttextures.com/patterns/black-paper.png')", // Textura interior
+
+  // Textos de la Portada
+  coverTitle: "Te Amo",
+  coverSubtitle: "Nuestro Primer Año",
+  coverTagline: "Álbum de Recuerdos",
+
+  // Colores de Texto
+  textColorLight: "#f5f5f5", // Texto principal claro
+  textColorDim: "#9ca3af",   // Texto secundario grisáceo
+};
+
 // --- COMPONENTES VISUALES ---
 const BindingHole = () => (
   <div className="absolute w-3 h-4 rounded-[2px] bg-[#0a0a0a] shadow-[inset_1px_1px_3px_rgba(0,0,0,0.9),0_1px_0_rgba(255,255,255,0.1)]" />
@@ -60,29 +82,37 @@ const PageContent = ({ data, side, isCover, pageIndex, isDevMode, handleTextUpda
   const isLeft = side === 'left';
   const numBindingRings = 12; 
   
+  // Estilos dinámicos basados en la configuración
+  const coverStyle = { backgroundColor: VISUAL_CONFIG.coverBackground };
+  const pageStyle = { backgroundColor: VISUAL_CONFIG.innerPageBackground };
+  const coverTextureStyle = { backgroundImage: VISUAL_CONFIG.coverTexture };
+  const pageTextureStyle = { backgroundImage: VISUAL_CONFIG.innerPageTexture, filter: 'contrast(1.5)' };
+
   if (isCover) {
       if (isLeft) return ( 
-          <div className="w-full h-full bg-[#181818] flex items-center justify-center relative border-l border-stone-800 p-8 text-center">
-              <div className="absolute inset-0 opacity-60 bg-[url('https://www.transparenttextures.com/patterns/black-paper.png')]"></div>
+          <div className="w-full h-full flex items-center justify-center relative border-l border-stone-800 p-8 text-center" style={coverStyle}>
+              <div className="absolute inset-0 opacity-60" style={coverTextureStyle}></div>
               <div className="relative z-20">
-                  <h2 className="text-6xl text-[#fff] font-handwriting animate-pulse drop-shadow-lg mb-8">Te Amo</h2>
+                  <h2 className="text-6xl font-handwriting animate-pulse drop-shadow-lg mb-8" style={{ color: VISUAL_CONFIG.textColorLight }}>{VISUAL_CONFIG.coverTitle}</h2>
                    <button type="button" onClick={handleReset} className="text-[10px] text-gray-400 border border-gray-600 px-6 py-2 rounded-full hover:bg-white hover:text-black transition-colors tracking-widest uppercase shadow-lg cursor-pointer">Volver a Empezar</button>
               </div>
           </div>
       );
       return ( 
-          <div className="w-full h-full bg-[#181818] flex items-center justify-center relative border-r border-stone-800 p-8">
-              <div className="absolute inset-0 opacity-60 bg-[url('https://www.transparenttextures.com/patterns/black-paper.png')]"></div>
+          <div className="w-full h-full flex items-center justify-center relative border-r border-stone-800 p-8" style={coverStyle}>
+              <div className="absolute inset-0 opacity-60" style={coverTextureStyle}></div>
               <div className="text-center p-8 border border-white/30 m-8 rounded-sm relative shadow-[inset_0_0_20px_rgba(0,0,0,0.5)] z-20">
                   <div className="absolute -top-3 left-1/2 -ml-3 w-6 h-6 bg-[#333] border border-white/20 rounded-full shadow-md"></div>
-                   <h1 className="text-5xl text-[#f5f5f5] font-handwriting leading-tight drop-shadow-lg">Nuestro<br/>Primer<br/>Año</h1>
-                  <div className="mt-4 text-gray-400 text-xs font-handwriting tracking-[0.3em] uppercase opacity-80">Álbum de Recuerdos</div>
+                   <h1 className="text-5xl font-handwriting leading-tight drop-shadow-lg" style={{ color: VISUAL_CONFIG.textColorLight }}>
+                      {VISUAL_CONFIG.coverSubtitle.split(' ').map((word, i) => <span key={i} className="block">{word}</span>)}
+                   </h1>
+                  <div className="mt-4 text-xs font-handwriting tracking-[0.3em] uppercase opacity-80" style={{ color: VISUAL_CONFIG.textColorDim }}>{VISUAL_CONFIG.coverTagline}</div>
               </div>
           </div>
       );
   }
 
-  if (!data) return <div className="w-full h-full bg-[#1a1a1a]"></div>;
+  if (!data) return <div className="w-full h-full" style={pageStyle}></div>;
 
   const isOddMonth = pageIndex % 2 === 0;
   const showPhotos = (isOddMonth && isLeft) || (!isOddMonth && !isLeft);
@@ -133,22 +163,22 @@ const PageContent = ({ data, side, isCover, pageIndex, isDevMode, handleTextUpda
           <div className="h-[66%] w-full flex flex-col items-center justify-center relative z-10">
               <div className={`w-full flex mb-4 ${isLeft ? 'justify-start pl-2' : 'justify-end pr-2'}`}>
                   {isDevMode ? (
-                    <input type="text" value={data.month || ''} onChange={(e) => handleTextUpdate && handleTextUpdate(pageIndex, 'month', e.target.value)} className="bg-transparent border-b border-white/50 text-[#f0f0f0] font-handwriting text-2xl rotate-[-2deg] w-40 text-right focus:outline-none focus:border-white"/>
+                    <input type="text" value={data.month || ''} onChange={(e) => handleTextUpdate && handleTextUpdate(pageIndex, 'month', e.target.value)} className="bg-transparent border-b border-white/50 font-handwriting text-2xl rotate-[-2deg] w-40 text-right focus:outline-none focus:border-white" style={{ color: VISUAL_CONFIG.textColorLight }}/>
                   ) : (
-                    <div className="font-handwriting text-2xl rotate-[-2deg] opacity-70 border-b border-white/20 pb-1 text-[#f0f0f0]">{data.month}</div>
+                    <div className="font-handwriting text-2xl rotate-[-2deg] opacity-70 border-b border-white/20 pb-1" style={{ color: VISUAL_CONFIG.textColorLight }}>{data.month}</div>
                   )}
               </div>
               <div className="flex-grow flex flex-col items-center w-full justify-center px-12">
                   {isDevMode ? (
-                    <input type="text" value={data.title || ''} onChange={(e) => handleTextUpdate && handleTextUpdate(pageIndex, 'title', e.target.value)} className="bg-transparent text-3xl text-[#f0f0f0] font-handwriting mb-4 rotate-1 text-center w-full focus:outline-none border-b border-dashed border-white/30"/>
+                    <input type="text" value={data.title || ''} onChange={(e) => handleTextUpdate && handleTextUpdate(pageIndex, 'title', e.target.value)} className="bg-transparent text-3xl font-handwriting mb-4 rotate-1 text-center w-full focus:outline-none border-b border-dashed border-white/30" style={{ color: VISUAL_CONFIG.textColorLight }}/>
                   ) : (
-                    <h2 className="text-3xl text-[#f0f0f0] font-handwriting mb-4 rotate-1 text-center drop-shadow-md">{data.title}</h2>
+                    <h2 className="text-3xl font-handwriting mb-4 rotate-1 text-center drop-shadow-md" style={{ color: VISUAL_CONFIG.textColorLight }}>{data.title}</h2>
                    )}
                   <div className="relative p-2 w-full">
                       {isDevMode ? (
-                        <textarea value={data.caption || ''} onChange={(e) => handleTextUpdate && handleTextUpdate(pageIndex, 'caption', e.target.value)} className="bg-black/20 text-[#e8e8e8] font-handwriting text-lg text-center leading-loose w-full p-2 rounded focus:outline-none resize-none h-32"/>
+                        <textarea value={data.caption || ''} onChange={(e) => handleTextUpdate && handleTextUpdate(pageIndex, 'caption', e.target.value)} className="bg-black/20 font-handwriting text-lg text-center leading-loose w-full p-2 rounded focus:outline-none resize-none h-32" style={{ color: '#e8e8e8' }}/>
                       ) : (
-                        <p className="text-[#e8e8e8] font-handwriting text-lg text-center leading-loose">{data.caption}</p>
+                        <p className="font-handwriting text-lg text-center leading-loose" style={{ color: '#e8e8e8' }}>{data.caption}</p>
                        )}
                   </div>
               </div>
@@ -160,8 +190,8 @@ const PageContent = ({ data, side, isCover, pageIndex, isDevMode, handleTextUpda
   );
 
   return (
-      <div className="w-full h-full relative overflow-hidden bg-[#1a1a1a]">
-          <div className="absolute inset-0 opacity-60 pointer-events-none" style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/black-paper.png")`, filter: 'contrast(1.5)' }}></div>
+      <div className="w-full h-full relative overflow-hidden" style={pageStyle}>
+          <div className="absolute inset-0 opacity-60 pointer-events-none" style={pageTextureStyle}></div>
           <div className={`absolute top-0 bottom-0 w-24 pointer-events-none z-30 ${isLeft ? 'right-0 bg-gradient-to-l' : 'left-0 bg-gradient-to-r'} from-black/70 via-white/5 to-transparent`}></div>
           <div className={`absolute top-[5%] bottom-[5%] flex flex-col justify-between py-1 z-40 ${isLeft ? 'right-2' : 'left-2'}`}>
               {[...Array(numBindingRings)].map((_, i) => <div key={i} className="h-8 flex items-center"><BindingHole /></div>)}
@@ -210,6 +240,7 @@ const DigitalAlbum = () => {
   const [albumData, setAlbumData] = useState(initialData);
 
   // --- SUPABASE: LEER DATOS ---
+  // (Lógica intacta tal como pediste)
   useEffect(() => {
     const loadData = async () => {
         const { data, error } = await supabase
@@ -403,11 +434,11 @@ const DigitalAlbum = () => {
 
           sheets.push(
               <div key={i} className="absolute top-0 w-1/2 h-full transform-style-3d" style={{ left: 'calc(50% + 10px)', transformOrigin: '-10px center', zIndex: zIndex, transition: `transform ${transitionDuration} cubic-bezier(0.2, 0.8, 0.2, 1)`, transform: i < currentSheet ? 'rotateY(-180deg)' : 'rotateY(0deg)', }}>
-                   <div className="absolute inset-0 backface-hidden bg-[#1a1a1a] overflow-hidden rounded-r-md border-r border-stone-800" style={{ backfaceVisibility: 'hidden' }}>
+                   <div className="absolute inset-0 backface-hidden overflow-hidden rounded-r-md border-r border-stone-800" style={{ backfaceVisibility: 'hidden', backgroundColor: VISUAL_CONFIG.innerPageBackground }}>
                       {FrontComp}
                       {!isCover && <div className="absolute inset-0 pointer-events-none transition-opacity duration-1000" style={{ background: 'linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.1) 45%, rgba(0,0,0,0.4) 60%, transparent 80%)', opacity: isPeeling ? 1 : 0 }} />}
                   </div>
-                  <div className="absolute inset-0 backface-hidden bg-[#1a1a1a] overflow-hidden rounded-l-md border-l border-stone-800" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
+                  <div className="absolute inset-0 backface-hidden overflow-hidden rounded-l-md border-l border-stone-800" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', backgroundColor: VISUAL_CONFIG.innerPageBackground }}>
                       {BackComp}
                   </div>
                </div>
@@ -417,7 +448,8 @@ const DigitalAlbum = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#d8c8b0] flex flex-col items-center justify-center overflow-hidden relative cursor-none" style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/wood-pattern.png")`, backgroundBlendMode: 'multiply' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center overflow-hidden relative cursor-none" 
+         style={{ backgroundImage: VISUAL_CONFIG.appBackground, backgroundColor: VISUAL_CONFIG.appBackgroundColor, backgroundBlendMode: 'multiply' }}>
       {isPlaying && (
         <div className="absolute top-0 left-0 w-[1px] h-[1px] opacity-0 overflow-hidden pointer-events-none">
             <iframe key={FIXED_YOUTUBE_ID} width="1" height="1" src={`https://www.youtube.com/embed/${FIXED_YOUTUBE_ID}?autoplay=1&loop=1&playlist=${FIXED_YOUTUBE_ID}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1`} title="YouTube audio" frameBorder="0" allow="autoplay; encrypted-media" allowFullScreen></iframe>
