@@ -16,7 +16,7 @@ const VISUAL_CONFIG = {
 
   // Textos de la Portada
   coverTitle: "Te Amo",
-  coverSubtitle: "Nuestro Primer Año (2024-2025)",
+  coverSubtitle: "Nuestro Primer Año",
   coverTagline: "Jorge y Rebeca",
 
   // Colores de Texto
@@ -40,7 +40,7 @@ const TwinLoopBinding = ({ numBindingRings }) => (
   </div>
 );
 
-const EditableImage = ({ src, pageIndex, imgIndex, className, rotation = "rotate-0", isDevMode, onImageUpload, onImageUrlChange, onZoom }) => {
+const EditableImage = ({ src, pageIndex, imgIndex, className, rotation = "rotate-0", isDevMode, onImageUpload, onZoom }) => {
   const startZoom = () => { if (!isDevMode && onZoom) onZoom(src); };
   const endZoom = () => { if (onZoom) onZoom(null); };
   const stopProp = (e) => e.stopPropagation();
@@ -56,15 +56,10 @@ const EditableImage = ({ src, pageIndex, imgIndex, className, rotation = "rotate
       {isDevMode && (
         <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-50 p-2 gap-2 rounded-sm" onMouseDown={stopProp} onTouchStart={stopProp}>
           <label className="cursor-pointer flex flex-col items-center text-white hover:text-green-400 transition-colors">
-            <Upload size={20} />
-            <span className="text-[10px] uppercase font-bold mt-1">Subir Foto</span>
+            <Upload size={32} />
+            <span className="text-xs uppercase font-bold mt-2">Subir Foto</span>
             <input type="file" accept="image/*" className="hidden" onChange={(e) => onImageUpload && onImageUpload(e, pageIndex, imgIndex)} />
           </label>
-          <div className="w-full h-[1px] bg-white/20"></div>
-          <div className="w-full">
-            <input type="text" placeholder="O pega enlace..." className="w-full text-xs text-black px-1 py-1 rounded border-none focus:outline-none focus:ring-2 focus:ring-green-500"
-                onChange={(e) => onImageUrlChange && onImageUrlChange(pageIndex, imgIndex, e.target.value)} onClick={(e) => e.target.select()} />
-          </div>
         </div>
       )}
       {!isDevMode && (
@@ -78,7 +73,7 @@ const EditableImage = ({ src, pageIndex, imgIndex, className, rotation = "rotate
   );
 };
 
-const PageContent = ({ data, side, isCover, pageIndex, isDevMode, handleTextUpdate, handleImageUpload, handleImageUrlChange, setZoomedImage, handleReset }) => {
+const PageContent = ({ data, side, isCover, pageIndex, isDevMode, handleTextUpdate, handleImageUpload, setZoomedImage, handleReset }) => {
   const isLeft = side === 'left';
   const numBindingRings = 12; 
   
@@ -123,10 +118,10 @@ const PageContent = ({ data, side, isCover, pageIndex, isDevMode, handleTextUpda
       {photoLayoutVariant === 0 && (
           <div className="w-full h-full p-6 relative flex items-center justify-center">
               <div className="grid grid-cols-2 gap-4 w-[80%] rotate-1">
-                  <EditableImage src={data.imgs[0]} pageIndex={pageIndex} imgIndex={0} rotation="-rotate-3" isDevMode={isDevMode} onImageUpload={handleImageUpload} onImageUrlChange={handleImageUrlChange} onZoom={setZoomedImage} />
-                  <EditableImage src={data.imgs[1]} pageIndex={pageIndex} imgIndex={1} rotation="rotate-2" isDevMode={isDevMode} onImageUpload={handleImageUpload} onImageUrlChange={handleImageUrlChange} onZoom={setZoomedImage} />
+                  <EditableImage src={data.imgs[0]} pageIndex={pageIndex} imgIndex={0} rotation="-rotate-3" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
+                  <EditableImage src={data.imgs[1]} pageIndex={pageIndex} imgIndex={1} rotation="rotate-2" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
                   <div className="col-span-2 flex justify-center mt-2">
-                      <EditableImage src={data.imgs[2]} pageIndex={pageIndex} imgIndex={2} rotation="-rotate-1" className="w-[45%]" isDevMode={isDevMode} onImageUpload={handleImageUpload} onImageUrlChange={handleImageUrlChange} onZoom={setZoomedImage} />
+                      <EditableImage src={data.imgs[2]} pageIndex={pageIndex} imgIndex={2} rotation="-rotate-1" className="w-[45%]" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
                   </div>
               </div>
            </div>
@@ -135,10 +130,10 @@ const PageContent = ({ data, side, isCover, pageIndex, isDevMode, handleTextUpda
           <div className="w-full h-full p-6 relative flex items-center justify-center">
               <div className="grid grid-cols-2 gap-4 w-[80%] -rotate-1">
                   <div className="col-span-2 flex justify-center mb-4">
-                     <EditableImage src={data.imgs[0]} pageIndex={pageIndex} imgIndex={0} rotation="rotate-1" className="w-[45%]" isDevMode={isDevMode} onImageUpload={handleImageUpload} onImageUrlChange={handleImageUrlChange} onZoom={setZoomedImage} />
+                     <EditableImage src={data.imgs[0]} pageIndex={pageIndex} imgIndex={0} rotation="rotate-1" className="w-[45%]" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
                   </div>
-                  <EditableImage src={data.imgs[1]} pageIndex={pageIndex} imgIndex={1} rotation="-rotate-2" isDevMode={isDevMode} onImageUpload={handleImageUpload} onImageUrlChange={handleImageUrlChange} onZoom={setZoomedImage} />
-                  <EditableImage src={data.imgs[2]} pageIndex={pageIndex} imgIndex={2} rotation="rotate-3" isDevMode={isDevMode} onImageUpload={handleImageUpload} onImageUrlChange={handleImageUrlChange} onZoom={setZoomedImage} />
+                  <EditableImage src={data.imgs[1]} pageIndex={pageIndex} imgIndex={1} rotation="-rotate-2" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
+                  <EditableImage src={data.imgs[2]} pageIndex={pageIndex} imgIndex={2} rotation="rotate-3" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
               </div>
            </div>
       )}
@@ -146,11 +141,11 @@ const PageContent = ({ data, side, isCover, pageIndex, isDevMode, handleTextUpda
           <div className="w-full h-full p-6 relative flex items-center justify-center">
               <div className="grid grid-cols-2 gap-4 w-[80%] rotate-2 items-center">
                   <div className="flex flex-col gap-4">
-                      <EditableImage src={data.imgs[0]} pageIndex={pageIndex} imgIndex={0} rotation="-rotate-2" isDevMode={isDevMode} onImageUpload={handleImageUpload} onImageUrlChange={handleImageUrlChange} onZoom={setZoomedImage} />
-                      <EditableImage src={data.imgs[1]} pageIndex={pageIndex} imgIndex={1} rotation="rotate-1" isDevMode={isDevMode} onImageUpload={handleImageUpload} onImageUrlChange={handleImageUrlChange} onZoom={setZoomedImage} />
+                      <EditableImage src={data.imgs[0]} pageIndex={pageIndex} imgIndex={0} rotation="-rotate-2" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
+                      <EditableImage src={data.imgs[1]} pageIndex={pageIndex} imgIndex={1} rotation="rotate-1" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
                   </div>
                   <div className="flex justify-center h-full items-center">
-                       <EditableImage src={data.imgs[2]} pageIndex={pageIndex} imgIndex={2} rotation="-rotate-3" isDevMode={isDevMode} onImageUpload={handleImageUpload} onImageUrlChange={handleImageUrlChange} onZoom={setZoomedImage} />
+                       <EditableImage src={data.imgs[2]} pageIndex={pageIndex} imgIndex={2} rotation="-rotate-3" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
                   </div>
               </div>
           </div>
@@ -184,7 +179,7 @@ const PageContent = ({ data, side, isCover, pageIndex, isDevMode, handleTextUpda
               </div>
           </div>
           <div className="h-[34%] w-full flex justify-center items-center relative z-30">
-               <EditableImage src={data.imgs[3]} pageIndex={pageIndex} imgIndex={3} rotation="rotate-3" className="w-[45%]" isDevMode={isDevMode} onImageUpload={handleImageUpload} onImageUrlChange={handleImageUrlChange} onZoom={setZoomedImage} />
+               <EditableImage src={data.imgs[3]} pageIndex={pageIndex} imgIndex={3} rotation="rotate-3" className="w-[45%]" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
           </div>
       </div>
   );
@@ -223,18 +218,18 @@ const DigitalAlbum = () => {
   ];
 
   const initialData = [
-    { month: 'ENE', fullMonth: 'Enero', title: 'El Comienzo', imgs: getImages('coffee'), caption: 'Aquel café donde el tiempo se detuvo por primera vez.', ticket: 'Cine: Fila 8' },
-    { month: 'FEB', fullMonth: 'Febrero', title: 'Nuestras Risas', imgs: getImages('laughing'), caption: 'Descubriendo que tenemos el mismo sentido del humor.', ticket: 'Museo Arte' },
-    { month: 'MAR', fullMonth: 'Marzo', title: 'Primera Escapada', imgs: getImages('roadtrip'), caption: 'Perdidos en la carretera, pero encontrándonos.', ticket: 'Peaje Km 40' },
-    { month: 'ABR', fullMonth: 'Abril', title: 'Rutinas Dulces', imgs: getImages('home'), caption: 'Domingos de pijama, películas y nada más.', ticket: 'Delivery Pizza' },
-    { month: 'MAY', fullMonth: 'Mayo', title: 'Pequeños Detalles', imgs: getImages('gift'), caption: 'Tus notas sorpresa en mi bolsillo.', ticket: 'Florería' },
-    { month: 'JUN', fullMonth: 'Junio', title: 'Medio Año', imgs: getImages('celebration'), caption: 'Celebrando seis meses de aventura.', ticket: 'Cena x2' },
-    { month: 'JUL', fullMonth: 'Julio', title: 'Nuevos Amigos', imgs: getImages('dinner'), caption: 'Presentaciones oficiales y cenas.', ticket: 'Bar Central' },
-    { month: 'AGO', fullMonth: 'Agosto', title: 'El Concierto', imgs: getImages('concert'), caption: 'Gritando canciones hasta quedarnos sin voz.', ticket: 'VIP Access' },
-    { month: 'SEP', fullMonth: 'Septiembre', title: 'Otoño Contigo', imgs: getImages('autumn'), caption: 'Colores cálidos y bufandas compartidas.', ticket: 'Tren #504' },
-    { month: 'OCT', fullMonth: 'Octubre', title: 'Apoyo Total', imgs: getImages('hugging'), caption: 'Gracias por sostenerme siempre.', ticket: 'Hospital Visita' },
-    { month: 'NOV', fullMonth: 'Noviembre', title: 'Planeando', imgs: getImages('planning'), caption: 'Soñando despiertos con el futuro.', ticket: 'Agencia Viajes' },
-    { month: 'DIC', fullMonth: 'Diciembre', title: '365 Días', imgs: getImages('anniversary'), caption: 'Un año entero de amor. Solo el prólogo.', ticket: 'Reserva 19:00' },
+    { month: 'ENE', fullMonth: 'Enero', title: 'El Comienzo', imgs: getImages('coffee'), caption: 'Celebramos nuestro primer mes y tu cumpleaños', ticket: 'Cine: Fila 8' },
+    { month: 'FEB', fullMonth: 'Febrero', title: 'Nuestro primer 14 de febrero', imgs: getImages('laughing'), caption: 'Celebramos mi cumpleaños y nuestro primer 14 de febrero', ticket: 'Museo Arte' },
+    { month: 'MAR', fullMonth: 'Marzo', title: 'Primer viaje', imgs: getImages('roadtrip'), caption: 'Viajamos a Yauyos junto a Melissa y Daniel', ticket: 'Peaje Km 40' },
+    { month: 'ABR', fullMonth: 'Abril', title: 'Despidiendo el verano', imgs: getImages('home'), caption: 'La llegada de Copito y nuestra primera visita a la playa', ticket: 'Delivery Pizza' },
+    { month: 'MAY', fullMonth: 'Mayo', title: 'Nuestra primera escapada', imgs: getImages('gift'), caption: 'Cocinamos juntos y nos casamos en el BurgerFest', ticket: 'Florería' },
+    { month: 'JUN', fullMonth: 'Junio', title: 'Medio Año', imgs: getImages('celebration'), caption: 'Celebrando seis meses de aventura', ticket: 'Cena x2' },
+    { month: 'JUL', fullMonth: 'Julio', title: 'La boda de Meli', imgs: getImages('dinner'), caption: 'Visitamos Yauyos e Ica en compañía de amigos y familiares', ticket: 'Bar Central' },
+    { month: 'AGO', fullMonth: 'Agosto', title: 'Anticuchos y películas', imgs: getImages('concert'), caption: 'Fuimos juntos a visitar a mis abuelitos', ticket: 'VIP Access' },
+    { month: 'SEP', fullMonth: 'Septiembre', title: 'Recibiendo la primavera', imgs: getImages('autumn'), caption: 'Fuimos juntos a la iglesia y un nuevo paseo en bicleta', ticket: 'Tren #504' },
+    { month: 'OCT', fullMonth: 'Octubre', title: 'Primer año de conocernos', imgs: getImages('hugging'), caption: 'Regresamos a Rustica y salimos por Halloween', ticket: 'Hospital Visita' },
+    { month: 'NOV', fullMonth: 'Noviembre', title: 'Regresando a La Punta', imgs: getImages('planning'), caption: 'Regresamos 1 año después a donde inició todo', ticket: 'Agencia Viajes' },
+    { month: 'DIC', fullMonth: 'Diciembre', title: 'Nuestro viaje a Cusco', imgs: getImages('anniversary'), caption: 'Un año entero de amor. Solo el prólogo.', ticket: 'Reserva 19:00' },
   ];
 
   const [albumData, setAlbumData] = useState(initialData);
@@ -331,14 +326,6 @@ const DigitalAlbum = () => {
     }
   };
 
-  const handleImageUrlChange = (pageIndex, imgIndex, url) => {
-      const newData = [...albumData];
-      const newImgs = [...newData[pageIndex].imgs];
-      newImgs[imgIndex] = url;
-      newData[pageIndex] = { ...newData[pageIndex], imgs: newImgs };
-      setAlbumData(newData);
-  };
-
   useEffect(() => {
     const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     if (isTouchDevice) return;
@@ -419,13 +406,13 @@ const DigitalAlbum = () => {
           const dataIndex = i - 1;
           if (i === 0) {
               FrontComp = <PageContent side="right" isCover={true} isDevMode={isDevMode} handleReset={handleReset} />;
-              BackComp = <PageContent data={albumData[0]} side="left" pageIndex={0} isDevMode={isDevMode} handleTextUpdate={handleTextUpdate} handleImageUpload={handleImageUpload} handleImageUrlChange={handleImageUrlChange} setZoomedImage={setZoomedImage} />;
+              BackComp = <PageContent data={albumData[0]} side="left" pageIndex={0} isDevMode={isDevMode} handleTextUpdate={handleTextUpdate} handleImageUpload={handleImageUpload} setZoomedImage={setZoomedImage} />;
           } else if (i === totalSheets - 1) {
-              FrontComp = <PageContent data={albumData[11]} side="right" pageIndex={11} isDevMode={isDevMode} handleTextUpdate={handleTextUpdate} handleImageUpload={handleImageUpload} handleImageUrlChange={handleImageUrlChange} setZoomedImage={setZoomedImage} />;
+              FrontComp = <PageContent data={albumData[11]} side="right" pageIndex={11} isDevMode={isDevMode} handleTextUpdate={handleTextUpdate} handleImageUpload={handleImageUpload} setZoomedImage={setZoomedImage} />;
               BackComp = <PageContent side="left" isCover={true} isDevMode={isDevMode} handleReset={handleReset} />;
           } else {
-              FrontComp = <PageContent data={albumData[dataIndex]} side="right" pageIndex={dataIndex} isDevMode={isDevMode} handleTextUpdate={handleTextUpdate} handleImageUpload={handleImageUpload} handleImageUrlChange={handleImageUrlChange} setZoomedImage={setZoomedImage} />;
-              BackComp = <PageContent data={albumData[dataIndex + 1]} side="left" pageIndex={dataIndex + 1} isDevMode={isDevMode} handleTextUpdate={handleTextUpdate} handleImageUpload={handleImageUpload} handleImageUrlChange={handleImageUrlChange} setZoomedImage={setZoomedImage} />;
+              FrontComp = <PageContent data={albumData[dataIndex]} side="right" pageIndex={dataIndex} isDevMode={isDevMode} handleTextUpdate={handleTextUpdate} handleImageUpload={handleImageUpload} setZoomedImage={setZoomedImage} />;
+              BackComp = <PageContent data={albumData[dataIndex + 1]} side="left" pageIndex={dataIndex + 1} isDevMode={isDevMode} handleTextUpdate={handleTextUpdate} handleImageUpload={handleImageUpload} setZoomedImage={setZoomedImage} />;
           }
 
           let transitionDuration = '2000ms';
@@ -468,7 +455,7 @@ const DigitalAlbum = () => {
         {isDevMode && (
             <div className="bg-black/80 text-white p-4 rounded-md mb-2 animate-fade-in flex flex-col gap-2 w-64 shadow-xl">
                 <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Edición</span>
-                 <span className="text-xs text-gray-400">Haz clic en textos o fotos para editar. Puedes subir archivos o pegar enlaces.</span>
+                 <span className="text-xs text-gray-400">Haz clic en textos o fotos para editar. Puedes subir archivos.</span>
             </div>
         )}
         <button type="button" onClick={isDevMode ? saveToCloud : () => setIsDevMode(true)} className={`p-3 rounded-full shadow-lg transition-all flex items-center gap-2 cursor-pointer ${isDevMode ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-stone-800 text-white hover:bg-stone-900'}`} title="Activar modo edición" disabled={isSaving}>
