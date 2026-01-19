@@ -45,23 +45,57 @@ const EditableImage = ({ src, pageIndex, imgIndex, className, rotation = "rotate
   const endZoom = () => { if (onZoom) onZoom(null); };
   const stopProp = (e) => e.stopPropagation();
 
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isDevMode && onImageUpload && e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const syntheticEvent = { target: { files: e.dataTransfer.files } };
+      onImageUpload(syntheticEvent, pageIndex, imgIndex);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   return (
     <div 
       className={`relative group bg-white shadow-xl p-2 pb-10 transition-all duration-300 hover:z-20 hover:scale-105 ${rotation} ${className} ${!isDevMode ? 'cursor-zoom-in' : ''}`}
       onMouseDown={startZoom} onMouseUp={endZoom} onMouseLeave={endZoom} onTouchStart={startZoom} onTouchEnd={endZoom}
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
     >
       <div className="w-full h-32 overflow-hidden bg-gray-200 relative">
           {src && <img src={src} className="w-full h-full object-cover pointer-events-none" alt="" />}
       </div>
+      
       {isDevMode && (
-        <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-50 p-2 gap-2 rounded-sm" onMouseDown={stopProp} onTouchStart={stopProp}>
-          <label className="cursor-pointer flex flex-col items-center text-white hover:text-green-400 transition-colors">
+        // 1. Quitamos el padding (p-2) y el gap aquí para que el label maneje el espacio
+        <div 
+            className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-50 rounded-sm" 
+            onMouseDown={stopProp} 
+            onTouchStart={stopProp}
+        >
+          {/* 2. CAMBIO CLAVE: Agregamos 'w-full h-full justify-center' al label */}
+          {/* Esto fuerza al botón a ocupar TODO el recuadro negro, no solo el centro */}
+          <label className="w-full h-full cursor-pointer flex flex-col items-center justify-center text-white hover:text-green-400 transition-colors">
+            
             <Upload size={32} />
-            <span className="text-xs uppercase font-bold mt-2">Subir Foto</span>
-            <input type="file" accept="image/*" className="hidden" onChange={(e) => onImageUpload && onImageUpload(e, pageIndex, imgIndex)} />
+            <span className="text-xs uppercase font-bold mt-2 text-center select-none">
+                Subir Foto
+            </span>
+            
+            <input 
+                type="file" 
+                accept="image/*" 
+                className="hidden" 
+                onChange={(e) => onImageUpload && onImageUpload(e, pageIndex, imgIndex)} 
+            />
           </label>
         </div>
       )}
+
       {!isDevMode && (
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-40">
               <div className="bg-black/60 text-white px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm flex items-center gap-1 shadow-lg">
