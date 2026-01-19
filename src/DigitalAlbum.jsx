@@ -5,14 +5,14 @@ import { supabase } from './supabaseClient';
 // --- 🎨 ZONA DE DISEÑO (Edita esto para cambiar el look) ---
 const VISUAL_CONFIG = {
   // Fondos y Texturas
-  appBackground: "url('https://www.transparenttextures.com/patterns/wood-pattern.png')", // Fondo de madera de la mesa
-  appBackgroundColor: "#d8c8b0", // Color base de la mesa
+  appBackground: "url('https://www.transparenttextures.com/patterns/wood-pattern.png')",
+  appBackgroundColor: "#d8c8b0",
   
-  coverBackground: "#181818", // Color de la tapa del álbum
-  coverTexture: "url('https://www.transparenttextures.com/patterns/black-paper.png')", // Textura de la tapa
+  coverBackground: "#181818",
+  coverTexture: "url('https://www.transparenttextures.com/patterns/black-paper.png')",
   
-  innerPageBackground: "#1a1a1a", // Color de las páginas interiores
-  innerPageTexture: "url('https://www.transparenttextures.com/patterns/black-paper.png')", // Textura interior
+  innerPageBackground: "#1a1a1a",
+  innerPageTexture: "url('https://www.transparenttextures.com/patterns/black-paper.png')",
 
   // Textos de la Portada
   coverTitle: "Te Amo",
@@ -20,8 +20,8 @@ const VISUAL_CONFIG = {
   coverTagline: "Jorge y Rebeca",
 
   // Colores de Texto
-  textColorLight: "#f5f5f5", // Texto principal claro
-  textColorDim: "#9ca3af",   // Texto secundario grisáceo
+  textColorLight: "#f5f5f5",
+  textColorDim: "#9ca3af",
 };
 
 // --- COMPONENTES VISUALES ---
@@ -40,11 +40,15 @@ const TwinLoopBinding = ({ numBindingRings }) => (
   </div>
 );
 
-const EditableImage = ({ src, pageIndex, imgIndex, className, rotation = "rotate-0", isDevMode, onImageUpload, onZoom }) => {
+const EditableImage = ({ src, pageIndex, imgIndex, className, rotation = "rotate-0", isDevMode, onImageUpload, onPositionChange, position = { x: 50, y: 50 }, onZoom }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const startPosRef = useRef({ x: 0, y: 0 });
+
   const startZoom = () => { if (!isDevMode && onZoom) onZoom(src); };
   const endZoom = () => { if (onZoom) onZoom(null); };
   const stopProp = (e) => e.stopPropagation();
 
+  // --- Lógica de Arrastrar y Soltar Archivo (Upload) ---
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -53,49 +57,114 @@ const EditableImage = ({ src, pageIndex, imgIndex, className, rotation = "rotate
       onImageUpload(syntheticEvent, pageIndex, imgIndex);
     }
   };
+  const handleDragOver = (e) => { e.preventDefault(); e.stopPropagation(); };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  // --- Lógica de Mover la Imagen (Pan) ---
+  const handleMouseDown = (e) => {
+    if (!isDevMode || !src) return;
+    e.preventDefault(); 
+    setIsDragging(true);
+    startPosRef.current = { x: e.clientX, y: e.clientY };
   };
+
+  useEffect(() => {
+    if (!isDragging) return;
+    
+    const handleMouseMove = (e) => {
+      const dx = e.clientX - startPosRef.current.x;
+      const dy = e.clientY - startPosRef.current.y;
+      
+      const sensitivity = 0.2; 
+      
+      let newX = position.x - (dx * sensitivity);
+      let newY = position.y - (dy * sensitivity);
+
+      newX = Math.max(0, Math.min(100, newX));
+      newY = Math.max(0, Math.min(100, newY));
+
+      if (onPositionChange) {
+        onPositionChange(pageIndex, imgIndex, { x: newX, y: newY });
+      }
+      
+      startPosRef.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const handleMouseUp = () => setIsDragging(false);
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, position, onPositionChange, pageIndex, imgIndex]);
+
 
   return (
     <div 
-      className={`relative group bg-white shadow-xl p-2 pb-10 transition-all duration-300 hover:z-20 hover:scale-105 ${rotation} ${className} ${!isDevMode ? 'cursor-zoom-in' : ''}`}
-      onMouseDown={startZoom} onMouseUp={endZoom} onMouseLeave={endZoom} onTouchStart={startZoom} onTouchEnd={endZoom}
+      className={`relative group bg-white shadow-xl p-2 pb-10 transition-all duration-300 hover:z-20 hover:scale-105 ${rotation} ${className} ${!isDevMode ? 'cursor-zoom-in' : isDragging ? 'cursor-grabbing' : src ? 'cursor-move' : 'cursor-default'}`}
+      onMouseDown={!isDevMode ? startZoom : null} 
+      onMouseUp={endZoom} 
+      onMouseLeave={endZoom} 
+      onTouchStart={startZoom} 
+      onTouchEnd={endZoom}
       onDrop={handleDrop}
       onDragOver={handleDragOver}
     >
-      <div className="w-full h-32 overflow-hidden bg-gray-200 relative">
-          {src && <img src={src} className="w-full h-full object-cover pointer-events-none" alt="" />}
-      </div>
-      
-      {isDevMode && (
-        // 1. Quitamos el padding (p-2) y el gap aquí para que el label maneje el espacio
-        <div 
-            className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-50 rounded-sm" 
-            onMouseDown={stopProp} 
-            onTouchStart={stopProp}
-        >
-          {/* 2. CAMBIO CLAVE: Agregamos 'w-full h-full justify-center' al label */}
-          {/* Esto fuerza al botón a ocupar TODO el recuadro negro, no solo el centro */}
-          <label className="w-full h-full cursor-pointer flex flex-col items-center justify-center text-white hover:text-green-400 transition-colors">
-            
-            <Upload size={32} />
-            <span className="text-xs uppercase font-bold mt-2 text-center select-none">
-                Subir Foto
-            </span>
-            
-            <input 
-                type="file" 
-                accept="image/*" 
-                className="hidden" 
-                onChange={(e) => onImageUpload && onImageUpload(e, pageIndex, imgIndex)} 
+      <div 
+        className="w-full h-32 overflow-hidden bg-gray-200 relative select-none"
+        onMouseDown={handleMouseDown} 
+      >
+          {src ? (
+            <img 
+              src={src} 
+              className="w-full h-full object-cover pointer-events-none" 
+              style={{ objectPosition: `${position.x}% ${position.y}%` }} 
+              alt="" 
             />
-          </label>
+          ) : (
+             <div className="w-full h-full flex items-center justify-center text-gray-400">
+                <Upload size={24} className="opacity-20" />
+             </div>
+          )}
+      </div>
+
+      {/* --- MODO EDICIÓN: CONTROLES --- */}
+      {isDevMode && (
+        <div className="absolute inset-0 pointer-events-none">
+           {/* Botón grande de subir (Si no hay foto) */}
+           {!src && (
+             <div className="absolute inset-0 bg-black/10 flex flex-col items-center justify-center pointer-events-auto hover:bg-black/20 transition-colors">
+                <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full text-stone-600 hover:text-stone-800">
+                  <Upload size={32} />
+                  <span className="text-[10px] uppercase font-bold mt-1">Subir Foto</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => onImageUpload && onImageUpload(e, pageIndex, imgIndex)} />
+                </label>
+             </div>
+           )}
+
+           {/* Botón flotante pequeño (Si hay foto) */}
+           {src && (
+             <div className="absolute top-1 right-1 pointer-events-auto opacity-0 group-hover:opacity-100 transition-opacity z-50">
+               <label className="bg-white/90 text-stone-800 p-1.5 rounded-full shadow-md cursor-pointer hover:bg-white hover:scale-110 transition-all block" title="Cambiar foto">
+                  <Upload size={14} />
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => onImageUpload && onImageUpload(e, pageIndex, imgIndex)} />
+               </label>
+             </div>
+           )}
+           
+           {/* Hint visual */}
+           {src && (
+             <div className="absolute bottom-2 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+               <span className="bg-black/50 text-white text-[9px] px-2 py-1 rounded-full backdrop-blur-sm">
+                 Arrastra para ajustar
+               </span>
+             </div>
+           )}
         </div>
       )}
 
+      {/* --- MODO VISUALIZACIÓN --- */}
       {!isDevMode && (
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-40">
               <div className="bg-black/60 text-white px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm flex items-center gap-1 shadow-lg">
@@ -107,15 +176,22 @@ const EditableImage = ({ src, pageIndex, imgIndex, className, rotation = "rotate
   );
 };
 
-const PageContent = ({ data, side, isCover, pageIndex, isDevMode, handleTextUpdate, handleImageUpload, setZoomedImage, handleReset }) => {
+const PageContent = ({ data, side, isCover, pageIndex, isDevMode, handleTextUpdate, handleImageUpload, handleImagePosition, setZoomedImage, handleReset }) => {
   const isLeft = side === 'left';
   const numBindingRings = 12; 
   
-  // Estilos dinámicos basados en la configuración
   const coverStyle = { backgroundColor: VISUAL_CONFIG.coverBackground };
   const pageStyle = { backgroundColor: VISUAL_CONFIG.innerPageBackground };
   const coverTextureStyle = { backgroundImage: VISUAL_CONFIG.coverTexture };
   const pageTextureStyle = { backgroundImage: VISUAL_CONFIG.innerPageTexture, filter: 'contrast(1.5)' };
+
+  // Helper para obtener posición segura
+  const getPos = (idx) => {
+    if (data && data.imgPositions && data.imgPositions[idx]) {
+      return data.imgPositions[idx];
+    }
+    return { x: 50, y: 50 };
+  };
 
   if (isCover) {
       if (isLeft) return ( 
@@ -152,10 +228,10 @@ const PageContent = ({ data, side, isCover, pageIndex, isDevMode, handleTextUpda
       {photoLayoutVariant === 0 && (
           <div className="w-full h-full p-6 relative flex items-center justify-center">
               <div className="grid grid-cols-2 gap-4 w-[80%] rotate-1">
-                  <EditableImage src={data.imgs[0]} pageIndex={pageIndex} imgIndex={0} rotation="-rotate-3" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
-                  <EditableImage src={data.imgs[1]} pageIndex={pageIndex} imgIndex={1} rotation="rotate-2" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
+                  <EditableImage src={data.imgs[0]} pageIndex={pageIndex} imgIndex={0} rotation="-rotate-3" isDevMode={isDevMode} onImageUpload={handleImageUpload} onPositionChange={handleImagePosition} position={getPos(0)} onZoom={setZoomedImage} />
+                  <EditableImage src={data.imgs[1]} pageIndex={pageIndex} imgIndex={1} rotation="rotate-2" isDevMode={isDevMode} onImageUpload={handleImageUpload} onPositionChange={handleImagePosition} position={getPos(1)} onZoom={setZoomedImage} />
                   <div className="col-span-2 flex justify-center mt-2">
-                      <EditableImage src={data.imgs[2]} pageIndex={pageIndex} imgIndex={2} rotation="-rotate-1" className="w-[45%]" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
+                      <EditableImage src={data.imgs[2]} pageIndex={pageIndex} imgIndex={2} rotation="-rotate-1" className="w-[45%]" isDevMode={isDevMode} onImageUpload={handleImageUpload} onPositionChange={handleImagePosition} position={getPos(2)} onZoom={setZoomedImage} />
                   </div>
               </div>
            </div>
@@ -164,10 +240,10 @@ const PageContent = ({ data, side, isCover, pageIndex, isDevMode, handleTextUpda
           <div className="w-full h-full p-6 relative flex items-center justify-center">
               <div className="grid grid-cols-2 gap-4 w-[80%] -rotate-1">
                   <div className="col-span-2 flex justify-center mb-4">
-                     <EditableImage src={data.imgs[0]} pageIndex={pageIndex} imgIndex={0} rotation="rotate-1" className="w-[45%]" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
+                     <EditableImage src={data.imgs[0]} pageIndex={pageIndex} imgIndex={0} rotation="rotate-1" className="w-[45%]" isDevMode={isDevMode} onImageUpload={handleImageUpload} onPositionChange={handleImagePosition} position={getPos(0)} onZoom={setZoomedImage} />
                   </div>
-                  <EditableImage src={data.imgs[1]} pageIndex={pageIndex} imgIndex={1} rotation="-rotate-2" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
-                  <EditableImage src={data.imgs[2]} pageIndex={pageIndex} imgIndex={2} rotation="rotate-3" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
+                  <EditableImage src={data.imgs[1]} pageIndex={pageIndex} imgIndex={1} rotation="-rotate-2" isDevMode={isDevMode} onImageUpload={handleImageUpload} onPositionChange={handleImagePosition} position={getPos(1)} onZoom={setZoomedImage} />
+                  <EditableImage src={data.imgs[2]} pageIndex={pageIndex} imgIndex={2} rotation="rotate-3" isDevMode={isDevMode} onImageUpload={handleImageUpload} onPositionChange={handleImagePosition} position={getPos(2)} onZoom={setZoomedImage} />
               </div>
            </div>
       )}
@@ -175,11 +251,11 @@ const PageContent = ({ data, side, isCover, pageIndex, isDevMode, handleTextUpda
           <div className="w-full h-full p-6 relative flex items-center justify-center">
               <div className="grid grid-cols-2 gap-4 w-[80%] rotate-2 items-center">
                   <div className="flex flex-col gap-4">
-                      <EditableImage src={data.imgs[0]} pageIndex={pageIndex} imgIndex={0} rotation="-rotate-2" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
-                      <EditableImage src={data.imgs[1]} pageIndex={pageIndex} imgIndex={1} rotation="rotate-1" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
+                      <EditableImage src={data.imgs[0]} pageIndex={pageIndex} imgIndex={0} rotation="-rotate-2" isDevMode={isDevMode} onImageUpload={handleImageUpload} onPositionChange={handleImagePosition} position={getPos(0)} onZoom={setZoomedImage} />
+                      <EditableImage src={data.imgs[1]} pageIndex={pageIndex} imgIndex={1} rotation="rotate-1" isDevMode={isDevMode} onImageUpload={handleImageUpload} onPositionChange={handleImagePosition} position={getPos(1)} onZoom={setZoomedImage} />
                   </div>
                   <div className="flex justify-center h-full items-center">
-                       <EditableImage src={data.imgs[2]} pageIndex={pageIndex} imgIndex={2} rotation="-rotate-3" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
+                       <EditableImage src={data.imgs[2]} pageIndex={pageIndex} imgIndex={2} rotation="-rotate-3" isDevMode={isDevMode} onImageUpload={handleImageUpload} onPositionChange={handleImagePosition} position={getPos(2)} onZoom={setZoomedImage} />
                   </div>
               </div>
           </div>
@@ -213,7 +289,7 @@ const PageContent = ({ data, side, isCover, pageIndex, isDevMode, handleTextUpda
               </div>
           </div>
           <div className="h-[34%] w-full flex justify-center items-center relative z-30">
-               <EditableImage src={data.imgs[3]} pageIndex={pageIndex} imgIndex={3} rotation="rotate-3" className="w-[45%]" isDevMode={isDevMode} onImageUpload={handleImageUpload} onZoom={setZoomedImage} />
+               <EditableImage src={data.imgs[3]} pageIndex={pageIndex} imgIndex={3} rotation="rotate-3" className="w-[45%]" isDevMode={isDevMode} onImageUpload={handleImageUpload} onPositionChange={handleImagePosition} position={getPos(3)} onZoom={setZoomedImage} />
           </div>
       </div>
   );
@@ -269,7 +345,7 @@ const DigitalAlbum = () => {
   const [albumData, setAlbumData] = useState(initialData);
 
   // --- SUPABASE: LEER DATOS ---
-  // (Lógica intacta tal como pediste)
+  // Recuerda descomentar esto cuando ya hayas guardado la nueva versión en la nube
   useEffect(() => {
     const loadData = async () => {
         const { data, error } = await supabase
@@ -360,6 +436,16 @@ const DigitalAlbum = () => {
     }
   };
 
+  // Esta función ahora está DENTRO del componente
+  const handleImagePosition = (pageIndex, imgIndex, newPos) => {
+    const newData = [...albumData];
+    if (!newData[pageIndex].imgPositions) {
+      newData[pageIndex].imgPositions = []; 
+    }
+    newData[pageIndex].imgPositions[imgIndex] = newPos;
+    setAlbumData(newData);
+  };
+
   useEffect(() => {
     const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     if (isTouchDevice) return;
@@ -438,15 +524,17 @@ const DigitalAlbum = () => {
           const isFirstInner = i === 1;
           const isPeeling = isAnimating && i === currentSheet - 1; 
           const dataIndex = i - 1;
+          
+          // Se pasa handleImagePosition a todos los componentes PageContent
           if (i === 0) {
-              FrontComp = <PageContent side="right" isCover={true} isDevMode={isDevMode} handleReset={handleReset} />;
-              BackComp = <PageContent data={albumData[0]} side="left" pageIndex={0} isDevMode={isDevMode} handleTextUpdate={handleTextUpdate} handleImageUpload={handleImageUpload} setZoomedImage={setZoomedImage} />;
+            FrontComp = <PageContent side="right" isCover={true} isDevMode={isDevMode} handleReset={handleReset} />;             
+            BackComp = <PageContent data={albumData[0]} side="left" pageIndex={0} isDevMode={isDevMode} handleTextUpdate={handleTextUpdate} handleImageUpload={handleImageUpload} handleImagePosition={handleImagePosition} setZoomedImage={setZoomedImage} />;         
           } else if (i === totalSheets - 1) {
-              FrontComp = <PageContent data={albumData[11]} side="right" pageIndex={11} isDevMode={isDevMode} handleTextUpdate={handleTextUpdate} handleImageUpload={handleImageUpload} setZoomedImage={setZoomedImage} />;
+              FrontComp = <PageContent data={albumData[11]} side="right" pageIndex={11} isDevMode={isDevMode} handleTextUpdate={handleTextUpdate} handleImageUpload={handleImageUpload} handleImagePosition={handleImagePosition} setZoomedImage={setZoomedImage} />;
               BackComp = <PageContent side="left" isCover={true} isDevMode={isDevMode} handleReset={handleReset} />;
           } else {
-              FrontComp = <PageContent data={albumData[dataIndex]} side="right" pageIndex={dataIndex} isDevMode={isDevMode} handleTextUpdate={handleTextUpdate} handleImageUpload={handleImageUpload} setZoomedImage={setZoomedImage} />;
-              BackComp = <PageContent data={albumData[dataIndex + 1]} side="left" pageIndex={dataIndex + 1} isDevMode={isDevMode} handleTextUpdate={handleTextUpdate} handleImageUpload={handleImageUpload} setZoomedImage={setZoomedImage} />;
+              FrontComp = <PageContent data={albumData[dataIndex]} side="right" pageIndex={dataIndex} isDevMode={isDevMode} handleTextUpdate={handleTextUpdate} handleImageUpload={handleImageUpload} handleImagePosition={handleImagePosition} setZoomedImage={setZoomedImage} />;
+              BackComp = <PageContent data={albumData[dataIndex + 1]} side="left" pageIndex={dataIndex + 1} isDevMode={isDevMode} handleTextUpdate={handleTextUpdate} handleImageUpload={handleImageUpload} handleImagePosition={handleImagePosition} setZoomedImage={setZoomedImage} />;
           }
 
           let transitionDuration = '2000ms';
@@ -455,14 +543,14 @@ const DigitalAlbum = () => {
 
           sheets.push(
               <div key={i} className="absolute top-0 w-1/2 h-full transform-style-3d" style={{ left: 'calc(50% + 10px)', transformOrigin: '-10px center', zIndex: zIndex, transition: `transform ${transitionDuration} cubic-bezier(0.2, 0.8, 0.2, 1)`, transform: i < currentSheet ? 'rotateY(-180deg)' : 'rotateY(0deg)', }}>
-                   <div className="absolute inset-0 backface-hidden overflow-hidden rounded-r-md border-r border-stone-800" style={{ backfaceVisibility: 'hidden', backgroundColor: VISUAL_CONFIG.innerPageBackground }}>
+                    <div className="absolute inset-0 backface-hidden overflow-hidden rounded-r-md border-r border-stone-800" style={{ backfaceVisibility: 'hidden', backgroundColor: VISUAL_CONFIG.innerPageBackground }}>
                       {FrontComp}
                       {!isCover && <div className="absolute inset-0 pointer-events-none transition-opacity duration-1000" style={{ background: 'linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.1) 45%, rgba(0,0,0,0.4) 60%, transparent 80%)', opacity: isPeeling ? 1 : 0 }} />}
-                  </div>
-                  <div className="absolute inset-0 backface-hidden overflow-hidden rounded-l-md border-l border-stone-800" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', backgroundColor: VISUAL_CONFIG.innerPageBackground }}>
+                    </div>
+                    <div className="absolute inset-0 backface-hidden overflow-hidden rounded-l-md border-l border-stone-800" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)', backgroundColor: VISUAL_CONFIG.innerPageBackground }}>
                       {BackComp}
-                  </div>
-               </div>
+                    </div>
+                </div>
           );
       }
       return sheets;
@@ -489,7 +577,7 @@ const DigitalAlbum = () => {
         {isDevMode && (
             <div className="bg-black/80 text-white p-4 rounded-md mb-2 animate-fade-in flex flex-col gap-2 w-64 shadow-xl">
                 <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Edición</span>
-                 <span className="text-xs text-gray-400">Haz clic en textos o fotos para editar. Puedes subir archivos.</span>
+                 <span className="text-xs text-gray-400">Haz clic en textos para editar. Arrastra las fotos para ajustarlas o haz clic en el icono para cambiarlas.</span>
             </div>
         )}
         <button type="button" onClick={isDevMode ? saveToCloud : () => setIsDevMode(true)} className={`p-3 rounded-full shadow-lg transition-all flex items-center gap-2 cursor-pointer ${isDevMode ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-stone-800 text-white hover:bg-stone-900'}`} title="Activar modo edición" disabled={isSaving}>
